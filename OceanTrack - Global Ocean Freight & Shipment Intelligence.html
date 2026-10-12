@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OceanTrack - Global Ocean Freight & Shipment Intelligence</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        maritime: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                            950: '#082f49'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome & Google Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; }
+    </style>
+</head>
+<body class="h-full bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-200 flex flex-col overflow-hidden">
+
+    <div id="authOverlay" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-8 shadow-2xl relative overflow-hidden">
+            <div class="absolute -top-10 -right-10 w-36 h-36 bg-maritime-500/10 rounded-full blur-2xl pointer-events-none"></div>
+            
+            <div class="text-center mb-6">
+                <div class="w-14 h-14 bg-maritime-600 text-white rounded-2xl mx-auto flex items-center justify-center text-2xl shadow-lg shadow-maritime-500/30 mb-3">
+                    <i class="fa-solid fa-ship"></i>
+                </div>
+                <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">OceanTrack Pro</h2>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Global Ocean Freight & Geopolitical Route Intelligence</p>
+            </div>
+
+            <form onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Corporate Email</label>
+                    <input type="email" id="loginEmail" required placeholder="john.davies@globalimporters.com" value="john.davies@globalimporters.com" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-maritime-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Select User Role & Permissions</label>
+                    <select id="loginRole" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-maritime-500 cursor-pointer">
+                        <option value="importer">Importer (Cargo Owner / Buyer)</option>
+                        <option value="exporter">Exporter (Shipper / Supplier)</option>
+                        <option value="forwarder">Freight Forwarder (Booking & Rates)</option>
+                        <option value="logistics">Logistics Team (Operations & Fleet)</option>
+                        <option value="admin">Admin / Global Risk Intelligence</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Password</label>
+                    <input type="password" required value="••••••••••••" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-maritime-500">
+                </div>
+                <button type="submit" class="w-full bg-maritime-600 hover:bg-maritime-500 text-white font-semibold text-xs py-3 rounded-xl shadow-lg shadow-maritime-600/30 transition mt-2">
+                    Access Maritime Dashboard &rarr;
+                </button>
+            </form>
+
+            <div class="mt-6 text-center border-t border-slate-100 dark:border-slate-800 pt-4">
+                <p class="text-[11px] text-slate-500">Demo mode enabled &bull; Instant role switching available inside</p>
+            </div>
+        </div>
+    </div>
+
+    <header class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 h-16 flex items-center justify-between px-6 z-30 shrink-0">
+        <div class="flex items-center space-x-4">
+            <div class="flex items-center space-x-2">
+                <div class="bg-maritime-600 text-white p-2 rounded-xl shadow-lg shadow-maritime-500/20 flex items-center justify-center">
+                    <i class="fa-solid fa-ship text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+                        OceanTrack <span class="text-xs font-semibold px-2 py-0.5 bg-maritime-100 dark:bg-maritime-900 text-maritime-600 dark:text-maritime-400 rounded-full">PRO v4.0</span>
+                    </h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Global Maritime & Logistics Intelligence</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-4">
+            <div class="hidden md:flex items-center space-x-2 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl text-sm">
+                <span class="text-xs text-slate-500 dark:text-slate-400 font-medium px-2">Role:</span>
+                <select id="roleSelector" onchange="switchRole(this.value)" class="bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 border-none font-medium text-xs rounded-lg px-3 py-1.5 focus:outline-none shadow-sm cursor-pointer">
+                    <option value="importer">Importer View</option>
+                    <option value="exporter">Exporter View</option>
+                    <option value="forwarder">Freight Forwarder</option>
+                    <option value="logistics">Logistics Team</option>
+                    <option value="admin">Admin / Risk Intel</option>
+                </select>
+            </div>
+
+            <button onclick="toggleNotificationModal()" class="relative p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition">
+                <i class="fa-regular fa-bell text-lg"></i>
+                <span class="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full animate-pulse"></span>
+            </button>
+
+            <button onclick="toggleDarkMode()" class="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition">
+                <i id="themeIcon" class="fa-solid fa-moon text-lg"></i>
+            </button>
+
+            <div class="h-6 w-[1px] bg-slate-200 dark:bg-slate-800"></div>
+
+            <div class="flex items-center space-x-3">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-maritime-600 to-indigo-600 text-white flex items-center justify-center font-bold text-sm shadow-md" id="userAvatarInitials">
+                    JD
+                </div>
+                <div class="hidden lg:block text-left">
+                    <p class="text-xs font-semibold leading-none text-slate-900 dark:text-white" id="userNameLabel">John Davies</p>
+                    <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-wider" id="userRoleLabel">Importer</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex flex-1 overflow-hidden">
+        <aside class="w-20 lg:w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between shrink-0 transition-all duration-300">
+            <nav class="p-3 space-y-1.5">
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl font-medium text-sm transition bg-maritime-600 text-white shadow-md shadow-maritime-500/20">
+                    <i class="fa-solid fa-chart-pie text-lg w-6 text-center"></i>
+                    <span class="hidden lg:inline">Dashboard</span>
+                </button>
+                <button onclick="switchTab('tracker')" id="nav-tracker" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl font-medium text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                    <i class="fa-solid fa-map-location-dot text-lg w-6 text-center"></i>
+                    <span class="hidden lg:inline">Live Shipment Tracker</span>
+                </button>
+                <button onclick="switchTab('ports')" id="nav-ports" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl font-medium text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                    <i class="fa-solid fa-anchor text-lg w-6 text-center"></i>
+                    <span class="hidden lg:inline">Global Port Directory</span>
+                </button>
+                <button onclick="switchTab('rates')" id="nav-rates" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl font-medium text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                    <i class="fa-solid fa-calculator text-lg w-6 text-center"></i>
+                    <span class="hidden lg:inline">Rates & Calculator</span>
+                </button>
+                <button onclick="switchTab('intelligence')" id="nav-intelligence" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl font-medium text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                    <i class="fa-solid fa-shield-halved text-lg w-6 text-center"></i>
+                    <span class="hidden lg:inline">Route & Risk Intel</span>
+                </button>
+                <button onclick="switchTab('documents')" id="nav-documents" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl font-medium text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                    <i class="fa-solid fa-file-shield text-lg w-6 text-center"></i>
+                    <span class="hidden lg:inline">Document Vault</span>
+                </button>
+            </nav>
+
+            <div class="p-3 border-t border-slate-200 dark:border-slate-800">
+                <div class="hidden lg:block bg-maritime-50 dark:bg-slate-800/60 p-3.5 rounded-xl border border-maritime-100 dark:border-slate-700">
+                    <div class="flex items-center space-x-2 text-maritime-600 dark:text-maritime-400 font-semibold text-xs mb-1">
+                        <i class="fa-solid fa-headset"></i>
+                        <span>24/7 Dispatch Desk</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-tight mb-2.5">Urgent customs clearance or emergency vessel rerouting?</p>
+                    <button onclick="openSupportModal()" class="w-full bg-maritime-600 hover:bg-maritime-500 text-white text-xs font-medium py-2 rounded-lg transition shadow-sm">
+                        Contact Command
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <main class="flex-1 overflow-y-auto custom-scrollbar bg-slate-50 dark:bg-slate-950 p-6">
+            
+            <!-- Dashboard View -->
+            <div id="view-dashboard" class="space-y-6 max-w-7xl mx-auto view-container">
+                <div class="bg-gradient-to-r from-maritime-900 via-maritime-800 to-indigo-900 text-white rounded-2xl p-6 shadow-xl relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div class="absolute -right-10 -bottom-10 opacity-10 text-9xl pointer-events-none">
+                        <i class="fa-solid fa-ship"></i>
+                    </div>
+                    <div class="z-10">
+                        <span id="dashboardRoleBadge" class="px-3 py-1 bg-maritime-500/30 border border-maritime-400/30 text-maritime-200 rounded-full text-xs font-semibold uppercase tracking-wider mb-2 inline-block">
+                            Importer Portal
+                        </span>
+                        <h2 class="text-2xl font-bold tracking-tight" id="dashboardWelcomeTitle">Welcome back, John!</h2>
+                        <p class="text-slate-300 text-sm mt-1">You have <span class="font-semibold text-white underline decoration-maritime-500">18 active shipments</span> in transit and 3 geopolitical route alerts active.</p>
+                    </div>
+                    <div class="flex items-center gap-3 z-10">
+                        <button onclick="switchTab('tracker')" class="px-4 py-2.5 bg-maritime-600 hover:bg-maritime-500 text-white text-xs font-semibold rounded-xl shadow-lg shadow-maritime-600/30 transition flex items-center gap-2">
+                            <i class="fa-solid fa-radar"></i> Live Tracker
+                        </button>
+                        <button onclick="switchTab('rates')" class="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs font-semibold rounded-xl transition flex items-center gap-2">
+                            <i class="fa-solid fa-calculator"></i> Rate Calculator
+                        </button>
+                    </div>
+                </div>
+
+                <!-- KPI Metrics -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-medium text-slate-500 uppercase">Active Shipments</p>
+                            <h3 class="text-2xl font-bold text-slate-900 dark:text-white mt-1">18</h3>
+                            <span class="text-xs text-emerald-600 font-medium flex items-center gap-1 mt-1">
+                                <i class="fa-solid fa-arrow-up"></i> +4 this week
+                            </span>
+                        </div>
+                        <div class="w-12 h-12 bg-maritime-50 dark:bg-maritime-900/40 text-maritime-600 dark:text-maritime-400 rounded-xl flex items-center justify-center text-xl">
+                            <i class="fa-solid fa-ship"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-medium text-slate-500 uppercase">Global Port Congestion</p>
+                            <h3 class="text-2xl font-bold text-amber-600 mt-1">4 Ports</h3>
+                            <span class="text-xs text-amber-500 font-medium flex items-center gap-1 mt-1">
+                                <i class="fa-solid fa-triangle-exclamation"></i> Shanghai, LA, Ningbo
+                            </span>
+                        </div>
+                        <div class="w-12 h-12 bg-amber-50 dark:bg-amber-950/40 text-amber-600 rounded-xl flex items-center justify-center text-xl">
+                            <i class="fa-solid fa-anchor"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-medium text-slate-500 uppercase">Avg Freight Rate (40ft)</p>
+                            <h3 class="text-2xl font-bold text-slate-900 dark:text-white mt-1">$2,780</h3>
+                            <span class="text-xs text-rose-600 font-medium flex items-center gap-1 mt-1">
+                                <i class="fa-solid fa-arrow-down"></i> -3.8% vs last mo
+                            </span>
+                        </div>
+                        <div class="w-12 h-12 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 rounded-xl flex items-center justify-center text-xl">
+                            <i class="fa-solid fa-dollar-sign"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-medium text-slate-500 uppercase">Carbon Footprint</p>
+                            <h3 class="text-2xl font-bold text-slate-900 dark:text-white mt-1">58.4 tCO2</h3>
+                            <span class="text-xs text-maritime-600 font-medium flex items-center gap-1 mt-1">
+                                <i class="fa-solid fa-leaf"></i> 91% Eco-compliant
+                            </span>
+                        </div>
+                        <div class="w-12 h-12 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 rounded-xl flex items-center justify-center text-xl">
+                            <i class="fa-solid fa-globe"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                        <div class="flex justify-between items-center mb-4">
+                            <div>
+                                <h3 class="font-bold text-base text-slate-900 dark:text-white">Active Shipments & Route Milestones</h3>
+                                <p class="text-xs text-slate-500">Real-time GPS / AIS tracking across global lanes</p>
+                            </div>
+                            <button onclick="switchTab('tracker')" class="text-xs text-maritime-600 dark:text-maritime-400 font-semibold hover:underline">View All &rarr;</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="border-b border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-400 uppercase">
+                                        <th class="py-3 px-2">BOL / Container</th>
+                                        <th class="py-3 px-2">Route</th>
+                                        <th class="py-3 px-2">Status</th>
+                                        <th class="py-3 px-2">Vessel</th>
+                                        <th class="py-3 px-2">ETA</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
+                                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer" onclick="viewShipmentDetails('MSCU8492011')">
+                                        <td class="py-3 px-2 font-semibold text-maritime-600">MSCU8492011</td>
+                                        <td class="py-3 px-2 text-xs text-slate-600 dark:text-slate-300">Shanghai &rarr; Rotterdam</td>
+                                        <td class="py-3 px-2"><span class="px-2.5 py-1 bg-amber-100 dark:bg-amber-950 text-amber-700 text-xs font-medium rounded-full">On Water</span></td>
+                                        <td class="py-3 px-2 text-xs text-slate-600 dark:text-slate-300">MSC Gülsün</td>
+                                        <td class="py-3 px-2 text-xs font-medium">Oct 24, 2026</td>
+                                    </tr>
+                                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer" onclick="viewShipmentDetails('MAEU9204812')">
+                                        <td class="py-3 px-2 font-semibold text-maritime-600">MAEU9204812</td>
+                                        <td class="py-3 px-2 text-xs text-slate-600 dark:text-slate-300">Singapore &rarr; Los Angeles</td>
+                                        <td class="py-3 px-2"><span class="px-2.5 py-1 bg-blue-100 dark:bg-blue-950 text-blue-700 text-xs font-medium rounded-full">Custom Cleared</span></td>
+                                        <td class="py-3 px-2 text-xs text-slate-600 dark:text-slate-300">Emma Mærsk</td>
+                                        <td class="py-3 px-2 text-xs font-medium">Oct 16, 2026</td>
+                                    </tr>
+                                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer" onclick="viewShipmentDetails('CMDU1182930')">
+                                        <td class="py-3 px-2 font-semibold text-maritime-600">CMDU1182930</td>
+                                        <td class="py-3 px-2 text-xs text-slate-600 dark:text-slate-300">Hamburg &rarr; Jebel Ali</td>
+                                        <td class="py-3 px-2"><span class="px-2.5 py-1 bg-emerald-100 dark:bg-emerald-950 text-emerald-700 text-xs font-medium rounded-full">Departed POL</span></td>
+                                        <td class="py-3 px-2 text-xs text-slate-600 dark:text-slate-300">CMA CGM Jacques Saadé</td>
+                                        <td class="py-3 px-2 text-xs font-medium">Nov 02, 2026</td>
+                                    </tr>
+                                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer" onclick="viewShipmentDetails('HLCU7738291')">
+                                        <td class="py-3 px-2 font-semibold text-maritime-600">HLCU7738291</td>
+                                        <td class="py-3 px-2 text-xs text-slate-600 dark:text-slate-300">Ningbo &rarr; Southampton</td>
+                                        <td class="py-3 px-2"><span class="px-2.5 py-1 bg-purple-100 dark:bg-purple-950 text-purple-700 text-xs font-medium rounded-full">Booked</span></td>
+                                        <td class="py-3 px-2 text-xs text-slate-600 dark:text-slate-300">Hapag-Lloyd Express</td>
+                                        <td class="py-3 px-2 text-xs font-medium">Nov 15, 2026</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="font-bold text-base text-slate-900 dark:text-white">Active Route Disruptions</h3>
+                                <span class="px-2 py-0.5 bg-rose-100 dark:bg-rose-950 text-rose-600 text-xs font-semibold rounded-md">Live Intel</span>
+                            </div>
+                            <div class="space-y-3">
+                                <div class="p-3 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 rounded-xl">
+                                    <div class="flex items-center gap-2 text-rose-700 dark:text-rose-400 font-semibold text-xs">
+                                        <i class="fa-solid fa-triangle-exclamation"></i>
+                                        <span>Red Sea / Suez Canal Crisis</span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-600 dark:text-slate-300 mt-1">Carriers avoiding Bab el-Mandeb. Cape of Good Hope rerouting active (+12 days).</p>
+                                </div>
+                                <div class="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 rounded-xl">
+                                    <div class="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-semibold text-xs">
+                                        <i class="fa-solid fa-cloud-bolt"></i>
+                                        <span>Panama Canal Draft Restrictions</span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-600 dark:text-slate-300 mt-1">Gatun lake levels require 15% weight reduction and slot auction delays.</p>
+                                </div>
+                                <div class="p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/50 rounded-xl">
+                                    <div class="flex items-center gap-2 text-blue-700 dark:text-blue-400 font-semibold text-xs">
+                                        <i class="fa-solid fa-info-circle"></i>
+                                        <span>Malacca Strait Heavy Traffic</span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-600 dark:text-slate-300 mt-1">Singapore and Port Klang berth delays averaging 24-36 hours.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="switchTab('intelligence')" class="w-full mt-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-semibold rounded-xl transition">
+                            Explore Geopolitical Risk Map &rarr;
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tracker View -->
+            <div id="view-tracker" class="space-y-6 max-w-7xl mx-auto view-container hidden">
+                <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                        <div>
+                            <h2 class="text-xl font-bold text-slate-900 dark:text-white">Live Shipment & Vessel AIS Tracker</h2>
+                            <p class="text-xs text-slate-500">Track containers or Bill of Lading (BOL) numbers in real time</p>
+                        </div>
+                        <div class="flex items-center gap-2 w-full md:w-auto">
+                            <input type="text" id="trackingInput" placeholder="Enter Container / BOL (e.g., MSCU8492011)" class="px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-maritime-500 w-full md:w-72">
+                            <button onclick="searchShipment()" class="px-4 py-2 bg-maritime-600 hover:bg-maritime-500 text-white text-xs font-semibold rounded-xl transition shadow-sm shrink-0">
+                                <i class="fa-solid fa-magnifying-glass mr-1"></i> Track
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- AIS Map Simulation -->
+                    <div class="relative bg-slate-900 rounded-2xl h-96 overflow-hidden border border-slate-800 flex items-center justify-center">
+                        <div class="absolute inset-0 opacity-25 bg-[radial-gradient(#0ea5e9_1px,transparent_1px)] [background-size:24px_24px]"></div>
+                        
+                        <div class="absolute top-10 left-16 text-center">
+                            <div class="w-4 h-4 bg-maritime-500 rounded-full animate-ping mx-auto"></div>
+                            <span class="text-[10px] text-maritime-300 font-semibold bg-slate-900/80 px-2 py-0.5 rounded mt-1 inline-block">Shanghai Port (POL)</span>
+                        </div>
+                        <div class="absolute bottom-12 right-20 text-center">
+                            <div class="w-4 h-4 bg-emerald-500 rounded-full animate-ping mx-auto"></div>
+                            <span class="text-[10px] text-emerald-300 font-semibold bg-slate-900/80 px-2 py-0.5 rounded mt-1 inline-block">Rotterdam (POD)</span>
+                        </div>
+
+                        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+                            <div class="relative group cursor-pointer">
+                                <div class="w-10 h-10 bg-maritime-600 text-white rounded-full flex items-center justify-center shadow-xl shadow-maritime-500/50 animate-bounce">
+                                    <i class="fa-solid fa-ship text-lg"></i>
+                                </div>
+                                <div class="absolute top-12 left-1/2 transform -translate-x-1/2 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-1.5 rounded-xl shadow-2xl text-[11px] whitespace-nowrap border border-slate-200 dark:border-slate-700">
+                                    <p class="font-bold">MSC Gülsün</p>
+                                    <p class="text-[10px] text-slate-500">Speed: 19.4 kts | Heading: 284° | Cape Route</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="absolute top-4 left-4 bg-slate-900/95 backdrop-blur border border-slate-700 p-3 rounded-xl text-xs text-white space-y-1">
+                            <p class="font-bold text-maritime-400"><i class="fa-solid fa-satellite"></i> AIS Satellite Feed Active</p>
+                            <p class="text-[10px] text-slate-400">Coordinates: 24.8912° N, 121.5982° E</p>
+                        </div>
+                    </div>
+
+                    <!-- Milestones -->
+                    <div class="mt-8">
+                        <h3 class="font-bold text-sm text-slate-900 dark:text-white mb-4">Shipment Milestones: <span class="text-maritime-600" id="currentBolLabel">MSCU8492011</span></h3>
+                        <div class="grid grid-cols-2 md:grid-cols-6 gap-2">
+                            <div class="p-3 bg-maritime-50 dark:bg-maritime-950/40 border border-maritime-200 dark:border-maritime-800 rounded-xl text-center">
+                                <i class="fa-solid fa-clipboard-check text-maritime-600 text-lg mb-1"></i>
+                                <p class="text-xs font-bold text-slate-900 dark:text-white">1. Booked</p>
+                                <p class="text-[10px] text-slate-500 mt-0.5">Oct 02, 10:00</p>
+                            </div>
+                            <div class="p-3 bg-maritime-50 dark:bg-maritime-950/40 border border-maritime-200 dark:border-maritime-800 rounded-xl text-center">
+                                <i class="fa-solid fa-anchor text-maritime-600 text-lg mb-1"></i>
+                                <p class="text-xs font-bold text-slate-900 dark:text-white">2. Departed POL</p>
+                                <p class="text-[10px] text-slate-500 mt-0.5">Oct 05, 14:30</p>
+                            </div>
+                            <div class="p-3 bg-maritime-600 text-white rounded-xl text-center shadow-lg shadow-maritime-500/20">
+                                <i class="fa-solid fa-water text-lg mb-1 animate-pulse"></i>
+                                <p class="text-xs font-bold">3. On Water</p>
+                                <p class="text-[10px] text-maritime-100 mt-0.5">Current Status</p>
+                            </div>
+                            <div class="p-3 bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-center opacity-70">
+                                <i class="fa-solid fa-warehouse text-slate-400 text-lg mb-1"></i>
+                                <p class="text-xs font-bold text-slate-700 dark:text-slate-300">4. Arrived POD</p>
+                                <p class="text-[10px] text-slate-400 mt-0.5">ETA Oct 24</p>
+                            </div>
+                            <div class="p-3 bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-center opacity-70">
+                                <i class="fa-solid fa-file-invoice-dollar text-slate-400 text-lg mb-1"></i>
+                                <p class="text-xs font-bold text-slate-700 dark:text-slate-300">5. Custom Cleared</p>
+                                <p class="text-[10px] text-slate-400 mt-0.5">Pending</p>
+                            </div>
+                            <div class="p-3 bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-center opacity-70">
+                                <i class="fa-solid fa-truck-fast text-slate-400 text-lg mb-1"></i>
+                                <p class="text-xs font-bold text-slate-700 dark:text-slate-300">6. Delivered</p>
+                                <p class="text-[10px] text-slate-400 mt-0.5">Pending</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ports Directory View (Expanded with 25+ global ports) -->
+            <div id="view-ports" class="space-y-6 max-w-7xl mx-auto view-container hidden">
+                <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                        <div>
+                            <h2 class="text-xl font-bold text-slate-900 dark:text-white">Global Port Directory & Intelligence</h2>
+                            <p class="text-xs text-slate-500">Real-time terminal capacities, average dwell times, congestion ratings & draft limits across 25+ major hubs</p>
+                        </div>
+                        <div class="flex items-center gap-2 w-full md:w-auto">
+                            <input type="text" id="portSearchInput" onkeyup="filterPorts()" placeholder="Search port name, country or code..." class="px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-maritime-500 w-full md:w-72">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="portGrid">
+                        <!-- Populated by JavaScript with 25+ ports -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rates Calculator View -->
+            <div id="view-rates" class="space-y-6 max-w-7xl mx-auto view-container hidden">
+                <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                    <h2 class="text-xl font-bold text-slate-900 dark:text-white mb-2">Instant Shipping Rates Calculator & Marketplace</h2>
+                    <p class="text-xs text-slate-500 mb-6">Compare spot vs contract rates across top global ocean carriers for 20ft, 40ft, Reefer, and LCL</p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 mb-6">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Port of Loading (POL)</label>
+                            <select id="calcPol" class="w-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-xs rounded-xl p-2.5 text-slate-800 dark:text-slate-100 focus:outline-none">
+                                <option>Shanghai (CNSHA)</option>
+                                <option>Singapore (SGSIN)</option>
+                                <option>Ningbo-Zhoushan (CNNBO)</option>
+                                <option>Hamburg (DEHAM)</option>
+                                <option>Jebel Ali (AEDXB)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Port of Discharge (POD)</label>
+                            <select id="calcPod" class="w-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-xs rounded-xl p-2.5 text-slate-800 dark:text-slate-100 focus:outline-none">
+                                <option>Rotterdam (NLRTM)</option>
+                                <option>Los Angeles (USLAX)</option>
+                                <option>New York / New Jersey (USNYC)</option>
+                                <option>Antwerp-Bruges (BEANR)</option>
+                                <option>Southampton (GBSOU)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Container & Cargo Type</label>
+                            <select id="calcContainer" class="w-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-xs rounded-xl p-2.5 text-slate-800 dark:text-slate-100 focus:outline-none">
+                                <option>40ft Dry Standard (40DV)</option>
+                                <option>20ft Dry Standard (20DV)</option>
+                                <option>40ft High Cube (40HC)</option>
+                                <option>40ft Reefer (Temperature Controlled)</option>
+                                <option>LCL (Less than Container Load per CBM)</option>
+                            </select>
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="calculateRates()" class="w-full bg-maritime-600 hover:bg-maritime-500 text-white font-semibold text-xs py-2.5 rounded-xl shadow-lg shadow-maritime-600/30 transition">
+                                <i class="fa-solid fa-calculator mr-1"></i> Search Rates
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="ratesResults" class="space-y-3">
+                        <h3 class="font-bold text-sm text-slate-900 dark:text-white mb-3">Available Carrier Offers & Marketplace Quotes</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="border-b border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-400 uppercase">
+                                        <th class="py-3 px-3">Carrier / Forwarder</th>
+                                        <th class="py-3 px-3">Rate Type</th>
+                                        <th class="py-3 px-3">Transit Time</th>
+                                        <th class="py-3 px-3">CO2 Estimate</th>
+                                        <th class="py-3 px-3">Price</th>
+                                        <th class="py-3 px-3 text-right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-sm" id="ratesTableBody">
+                                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                                        <td class="py-4 px-3 flex items-center gap-3">
+                                            <div class="w-8 h-8 rounded-lg bg-cyan-100 dark:bg-cyan-950 text-cyan-700 flex items-center justify-center font-bold text-xs">MSK</div>
+                                            <div>
+                                                <p class="font-bold text-xs text-slate-900 dark:text-white">Maersk Line</p>
+                                                <p class="text-[10px] text-emerald-600 font-medium">Eco-Vessel Direct</p>
+                                            </div>
+                                        </td>
+                                        <td class="py-4 px-3"><span class="px-2 py-0.5 bg-blue-100 dark:bg-blue-950 text-blue-700 text-xs font-medium rounded">Spot Rate</span></td>
+                                        <td class="py-4 px-3 text-xs text-slate-700 dark:text-slate-300">26 Days</td>
+                                        <td class="py-4 px-3 text-xs text-slate-700 dark:text-slate-300">3.2 tCO2</td>
+                                        <td class="py-4 px-3 font-bold text-maritime-600">$2,750</td>
+                                        <td class="py-4 px-3 text-right">
+                                            <button onclick="bookRate('Maersk Line', '$2,750')" class="px-3 py-1.5 bg-maritime-600 hover:bg-maritime-500 text-white text-xs font-semibold rounded-lg shadow-sm transition">Book Now</button>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                                        <td class="py-4 px-3 flex items-center gap-3">
+                                            <div class="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-950 text-amber-700 flex items-center justify-center font-bold text-xs">MSC</div>
+                                            <div>
+                                                <p class="font-bold text-xs text-slate-900 dark:text-white">Mediterranean Shipping</p>
+                                                <p class="text-[10px] text-slate-500">Weekly Departure</p>
+                                            </div>
+                                        </td>
+                                        <td class="py-4 px-3"><span class="px-2 py-0.5 bg-purple-100 dark:bg-purple-950 text-purple-700 text-xs font-medium rounded">Contract Rate</span></td>
+                                        <td class="py-4 px-3 text-xs text-slate-700 dark:text-slate-300">28 Days</td>
+                                        <td class="py-4 px-3 text-xs text-slate-700 dark:text-slate-300">3.6 tCO2</td>
+                                        <td class="py-4 px-3 font-bold text-maritime-600">$2,490</td>
+                                        <td class="py-4 px-3 text-right">
+                                            <button onclick="bookRate('MSC', '$2,490')" class="px-3 py-1.5 bg-maritime-600 hover:bg-maritime-500 text-white text-xs font-semibold rounded-lg shadow-sm transition">Book Now</button>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                                        <td class="py-4 px-3 flex items-center gap-3">
+                                            <div class="w-8 h-8 rounded-lg bg-rose-100 dark:bg-rose-950 text-rose-700 flex items-center justify-center font-bold text-xs">CMA</div>
+                                            <div>
+                                                <p class="font-bold text-xs text-slate-900 dark:text-white">CMA CGM</p>
+                                                <p class="text-[10px] text-slate-500">Express Service</p>
+                                            </div>
+                                        </td>
+                                        <td class="py-4 px-3"><span class="px-2 py-0.5 bg-blue-100 dark:bg-blue-950 text-blue-700 text-xs font-medium rounded">Spot Rate</span></td>
+                                        <td class="py-4 px-3 text-xs text-slate-700 dark:text-slate-300">24 Days</td>
+                                        <td class="py-4 px-3 text-xs text-slate-700 dark:text-slate-300">3.9 tCO2</td>
+                                        <td class="py-4 px-3 font-bold text-maritime-600">$2,920</td>
+                                        <td class="py-4 px-3 text-right">
+                                            <button onclick="bookRate('CMA CGM', '$2,920')" class="px-3 py-1.5 bg-maritime-600 hover:bg-maritime-500 text-white text-xs font-semibold rounded-lg shadow-sm transition">Book Now</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Route & Risk Intel View -->
+            <div id="view-intelligence" class="space-y-6 max-w-7xl mx-auto view-container hidden">
+                <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                    <h2 class="text-xl font-bold text-slate-900 dark:text-white mb-2">Geopolitical & Route Availability Intelligence</h2>
+                    <p class="text-xs text-slate-500 mb-6">Real-time alerts, canal disruptions, pirate zone advisories, and AI rerouting recommendations</p>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2 space-y-4">
+                            <div class="p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                                        <i class="fa-solid fa-water text-maritime-600"></i> Suez Canal / Red Sea Corridor
+                                    </h3>
+                                    <span class="px-2.5 py-1 bg-rose-100 dark:bg-rose-950 text-rose-700 text-xs font-semibold rounded-full">High Risk / Rerouted</span>
+                                </div>
+                                <p class="text-xs text-slate-600 dark:text-slate-300 mb-3">Major carriers avoiding Bab el-Mandeb strait due to security incidents. Vessels diverted around Cape of Good Hope.</p>
+                                <div class="flex items-center justify-between text-xs font-medium text-slate-500 bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
+                                    <span>Avg Transit Impact: <strong class="text-rose-600">+12 Days</strong></span>
+                                    <span>Fuel Surcharge: <strong class="text-amber-600">+$450 / FEU</strong></span>
+                                </div>
+                            </div>
+
+                            <div class="p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                                        <i class="fa-solid fa-ship text-maritime-600"></i> Panama Canal Water Level Restrictions
+                                    </h3>
+                                    <span class="px-2.5 py-1 bg-amber-100 dark:bg-amber-950 text-amber-700 text-xs font-semibold rounded-full">Draft Restricted</span>
+                                </div>
+                                <p class="text-xs text-slate-600 dark:text-slate-300 mb-3">El Niño weather patterns reduced Gatun Lake water levels. Daily transits limited to 24 slots with strict maximum draft enforcement.</p>
+                                <div class="flex items-center justify-between text-xs font-medium text-slate-500 bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
+                                    <span>Slot Auction Delay: <strong class="text-amber-600">2-4 Days</strong></span>
+                                    <span>Weight Limit: <strong class="text-slate-800 dark:text-slate-200">-15% Capacity</strong></span>
+                                </div>
+                            </div>
+
+                            <div class="p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                                        <i class="fa-solid fa-shield-halved text-maritime-600"></i> Baltic Sea Naval & GPS Jamming Risks
+                                    </h3>
+                                    <span class="px-2.5 py-1 bg-amber-100 dark:bg-amber-950 text-amber-700 text-xs font-semibold rounded-full">Moderate Advisory</span>
+                                </div>
+                                <p class="text-xs text-slate-600 dark:text-slate-300 mb-3">Electronic interference reported near Gulf of Finland. Manual celestial and radar navigation backups recommended for feeder vessels.</p>
+                                <div class="flex items-center justify-between text-xs font-medium text-slate-500 bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
+                                    <span>AIS Signal Reliability: <strong class="text-amber-600">92%</strong></span>
+                                    <span>Insurance Surcharge: <strong class="text-slate-800 dark:text-slate-200">+0.25%</strong></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-maritime-900 text-white p-5 rounded-2xl flex flex-col justify-between shadow-xl">
+                            <div>
+                                <span class="px-2.5 py-1 bg-maritime-600 text-maritime-100 text-[10px] font-bold uppercase rounded-full">AI Routing Advisor</span>
+                                <h3 class="font-bold text-base mt-3 mb-2">Alternative Route Optimization</h3>
+                                <p class="text-xs text-slate-300 leading-relaxed mb-4">Our predictive model suggests shifting Asia-to-North Europe shipments via Northern Sea Route or adjusting buffer inventory by +5 days.</p>
+                                <ul class="space-y-2 text-xs text-slate-200">
+                                    <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-400"></i> Cape of Good Hope is 99.4% secure</li>
+                                    <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-400"></i> Direct rail freight alternatives available</li>
+                                </ul>
+                            </div>
+                            <button onclick="triggerOptimization()" class="w-full mt-6 py-3 bg-maritime-600 hover:bg-maritime-500 font-semibold text-xs rounded-xl shadow-lg transition">
+                                Run Rerouting Simulation
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Document Vault View -->
+            <div id="view-documents" class="space-y-6 max-w-7xl mx-auto view-container hidden">
+                <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h2 class="text-xl font-bold text-slate-900 dark:text-white">Secure Maritime Document Vault</h2>
+                            <p class="text-xs text-slate-500">Bills of Lading, Commercial Invoices, Packing Lists & Customs Declarations</p>
+                        </div>
+                        <button onclick="openUploadModal()" class="px-4 py-2.5 bg-maritime-600 hover:bg-maritime-500 text-white text-xs font-semibold rounded-xl shadow-md transition flex items-center gap-2">
+                            <i class="fa-solid fa-cloud-arrow-up"></i> Upload Document
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center justify-between mb-3">
+                                    <i class="fa-solid fa-file-pdf text-rose-500 text-2xl"></i>
+                                    <span class="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950 text-emerald-700 text-[10px] font-semibold rounded-full">Verified</span>
+                                </div>
+                                <h3 class="font-bold text-sm text-slate-900 dark:text-white truncate">Bill of Lading - MSCU849</h3>
+                                <p class="text-[11px] text-slate-500 mt-1">Uploaded Oct 02, 2026</p>
+                            </div>
+                            <div class="mt-4 pt-3 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center">
+                                <span class="text-[10px] text-slate-400 font-mono">PDF &bull; 2.4 MB</span>
+                                <button onclick="downloadDoc('Bill of Lading - MSCU849')" class="text-maritime-600 hover:underline text-xs font-semibold">Download</button>
+                            </div>
+                        </div>
+
+                        <div class="p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center justify-between mb-3">
+                                    <i class="fa-solid fa-file-excel text-emerald-500 text-2xl"></i>
+                                    <span class="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950 text-emerald-700 text-[10px] font-semibold rounded-full">Verified</span>
+                                </div>
+                                <h3 class="font-bold text-sm text-slate-900 dark:text-white truncate">Commercial Invoice #9921</h3>
+                                <p class="text-[11px] text-slate-500 mt-1">Uploaded Oct 03, 2026</p>
+                            </div>
+                            <div class="mt-4 pt-3 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center">
+                                <span class="text-[10px] text-slate-400 font-mono">XLSX &bull; 840 KB</span>
+                                <button onclick="downloadDoc('Commercial Invoice #9921')" class="text-maritime-600 hover:underline text-xs font-semibold">Download</button>
+                            </div>
+                        </div>
+
+                        <div class="p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center justify-between mb-3">
+                                    <i class="fa-solid fa-file-word text-blue-500 text-2xl"></i>
+                                    <span class="px-2 py-0.5 bg-amber-100 dark:bg-amber-950 text-amber-700 text-[10px] font-semibold rounded-full">Pending Stamp</span>
+                                </div>
+                                <h3 class="font-bold text-sm text-slate-900 dark:text-white truncate">Customs Declaration EU</h3>
+                                <p class="text-[11px] text-slate-500 mt-1">Uploaded Oct 04, 2026</p>
+                            </div>
+                            <div class="mt-4 pt-3 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center">
+                                <span class="text-[10px] text-slate-400 font-mono">DOCX &bull; 1.1 MB</span>
+                                <button onclick="downloadDoc('Customs Declaration EU')" class="text-maritime-600 hover:underline text-xs font-semibold">Download</button>
+                            </div>
+                        </div>
+
+                        <div class="p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center justify-between mb-3">
+                                    <i class="fa-solid fa-file-pdf text-rose-500 text-2xl"></i>
+                                    <span class="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950 text-emerald-700 text-[10px] font-semibold rounded-full">Verified</span>
+                                </div>
+                                <h3 class="font-bold text-sm text-slate-900 dark:text-white truncate">Packing List - MAEU920</h3>
+                                <p class="text-[11px] text-slate-500 mt-1">Uploaded Oct 01, 2026</p>
+                            </div>
+                            <div class="mt-4 pt-3 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center">
+                                <span class="text-[10px] text-slate-400 font-mono">PDF &bull; 1.5 MB</span>
+                                <button onclick="downloadDoc('Packing List - MAEU920')" class="text-maritime-600 hover:underline text-xs font-semibold">Download</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <div id="messageModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 dark:border-slate-800">
+            <div class="flex items-center space-x-3 mb-4">
+                <div id="modalIcon" class="w-10 h-10 rounded-xl bg-maritime-100 dark:bg-maritime-900 text-maritime-600 flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-info"></i>
+                </div>
+                <div>
+                    <h3 id="modalTitle" class="font-bold text-base text-slate-900 dark:text-white">OceanTrack Notification</h3>
+                    <p class="text-xs text-slate-500">System Message</p>
+                </div>
+            </div>
+            <p id="modalBody" class="text-sm text-slate-600 dark:text-slate-300 mb-6">Action completed successfully.</p>
+            <div class="flex justify-end space-x-2">
+                <button onclick="closeModal()" class="px-4 py-2 bg-maritime-600 hover:bg-maritime-500 text-white font-semibold text-xs rounded-xl transition">
+                    Got it
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Expanded Global Ports Database (25+ major international ports)
+        const globalPorts = [
+            { code: 'CNSHA', name: 'Port of Shanghai', country: 'China', region: 'East Asia', capacity: '47.3M TEU', dwell: '3.8 Days', status: 'Moderate Congestion', coords: '31.2304° N, 121.4737° E' },
+            { code: 'SGSIN', name: 'Port of Singapore', country: 'Singapore', region: 'Southeast Asia', capacity: '37.5M TEU', dwell: '1.2 Days', status: 'Normal Operations', coords: '1.3521° N, 103.8198° E' },
+            { code: 'NLRTM', name: 'Port of Rotterdam', country: 'Netherlands', region: 'Europe', capacity: '15.3M TEU', dwell: '1.6 Days', status: 'Normal Operations', coords: '51.9244° N, 4.4777° E' },
+            { code: 'USLAX', name: 'Port of Los Angeles', country: 'United States', region: 'North America', capacity: '10.6M TEU', dwell: '3.4 Days', status: 'Moderate Congestion', coords: '33.7420° N, 118.2706° W' },
+            { code: 'CNNBO', name: 'Port of Ningbo-Zhoushan', country: 'China', region: 'East Asia', capacity: '35.3M TEU', dwell: '3.1 Days', status: 'Typhoon Alert', coords: '29.8683° N, 121.5440° E' },
+            { code: 'AEDXB', name: 'Port of Jebel Ali', country: 'Dubai', region: 'Middle East', capacity: '14.0M TEU', dwell: '1.8 Days', status: 'Normal Operations', coords: '25.0136° N, 55.0618° E' },
+            { code: 'DEHAM', name: 'Port of Hamburg', country: 'Germany', region: 'Europe', capacity: '8.3M TEU', dwell: '2.1 Days', status: 'Normal Operations', coords: '53.5511° N, 9.9937° E' },
+            { code: 'USLGB', name: 'Port of Long Beach', country: 'United States', region: 'North America', capacity: '9.1M TEU', dwell: '2.9 Days', status: 'Normal Operations', coords: '33.7701° N, 118.1937° W' },
+            { code: 'KRPUS', name: 'Port of Busan', country: 'South Korea', region: 'East Asia', capacity: '22.7M TEU', dwell: '1.4 Days', status: 'Normal Operations', coords: '35.1796° N, 129.0756° E' },
+            { code: 'USNYC', name: 'Port of New York / New Jersey', country: 'United States', region: 'North America', capacity: '9.5M TEU', dwell: '2.5 Days', status: 'Normal Operations', coords: '40.7128° N, 74.0060° W' },
+            { code: 'BEANR', name: 'Port of Antwerp-Bruges', country: 'Belgium', region: 'Europe', capacity: '13.5M TEU', dwell: '2.2 Days', status: 'Normal Operations', coords: '51.2194° N, 4.4025° E' },
+            { code: 'MYPKG', name: 'Port Klang', country: 'Malaysia', region: 'Southeast Asia', capacity: '13.7M TEU', dwell: '2.4 Days', status: 'Moderate Congestion', coords: '3.0033° N, 101.4012° E' },
+            { code: 'HKHKG', name: 'Port of Hong Kong', country: 'Hong Kong', region: 'East Asia', capacity: '16.6M TEU', dwell: '1.9 Days', status: 'Normal Operations', coords: '22.3193° N, 114.1694° E' },
+            { code: 'ESALG', name: 'Port of Algeciras', country: 'Spain', region: 'Europe', capacity: '4.8M TEU', dwell: '1.5 Days', status: 'Normal Operations', coords: '36.1408° N, 5.4562° W' },
+            { code: 'ESVLC', name: 'Port of Valencia', country: 'Spain', region: 'Europe', capacity: '5.6M TEU', dwell: '1.8 Days', status: 'Normal Operations', coords: '39.4699° N, 0.3763° W' },
+            { code: 'TWKHH', name: 'Port of Kaohsiung', country: 'Taiwan', region: 'East Asia', capacity: '9.6M TEU', dwell: '2.0 Days', status: 'Normal Operations', coords: '22.6273° N, 120.3014° E' },
+            { code: 'THLCH', name: 'Port of Laem Chabang', country: 'Thailand', region: 'Southeast Asia', capacity: '8.8M TEU', dwell: '2.1 Days', status: 'Normal Operations', coords: '13.0843° N, 100.8825° E' },
+            { code: 'INNSA', name: 'Nhava Sheva (Mumbai)', country: 'India', region: 'South Asia', capacity: '6.5M TEU', dwell: '3.2 Days', status: 'Moderate Congestion', coords: '18.9488° N, 72.9463° E' },
+            { code: 'LKCMB', name: 'Port of Colombo', country: 'Sri Lanka', region: 'South Asia', capacity: '7.2M TEU', dwell: '2.3 Days', status: 'Normal Operations', coords: '6.9271° N, 79.8612° E' },
+            { code: 'BRSSZ', name: 'Port of Santos', country: 'Brazil', region: 'South America', capacity: '4.2M TEU', dwell: '3.5 Days', status: 'Normal Operations', coords: '23.9608° S, 46.3336° W' },
+            { code: 'CAVAN', name: 'Port of Vancouver', country: 'Canada', region: 'North America', capacity: '4.0M TEU', dwell: '2.8 Days', status: 'Normal Operations', coords: '49.2827° N, 123.1207° W' },
+            { code: 'AUSYD', name: 'Port of Sydney', country: 'Australia', region: 'Oceania', capacity: '2.7M TEU', dwell: '2.2 Days', status: 'Normal Operations', coords: '33.8688° S, 151.2093° E' },
+            { code: 'JPYOK', name: 'Port of Yokohama', country: 'Japan', region: 'East Asia', capacity: '3.0M TEU', dwell: '1.3 Days', status: 'Normal Operations', coords: '35.4437° N, 135.6384° E' },
+            { code: 'DEBRE', name: 'Port of Bremen / Bremerhaven', country: 'Germany', region: 'Europe', capacity: '4.9M TEU', dwell: '1.7 Days', status: 'Normal Operations', coords: '53.5359° N, 8.5783° E' }
+        ];
+
+        window.onload = function() {
+            renderPortsGrid(globalPorts);
+        };
+
+        function handleLogin(event) {
+            event.preventDefault();
+            const role = document.getElementById('loginRole').value;
+            const email = document.getElementById('loginEmail').value;
+            switchRole(role);
+            document.getElementById('authOverlay').classList.add('hidden');
+            showModal('Authentication Successful', `Logged in as ${email} with role [${role.toUpperCase()}]. Session secure.`, 'fa-shield-halved');
+        }
+
+        function switchRole(role) {
+            const roleLabels = {
+                importer: { name: 'John Davies', title: 'Importer', badge: 'Importer Portal', welcome: 'Welcome back, John! 18 active shipments in transit.' },
+                exporter: { name: 'Elena Rostova', title: 'Exporter', badge: 'Exporter Portal', welcome: 'Welcome back, Elena! 12 outgoing containers booked.' },
+                forwarder: { name: 'Sarah Lin', title: 'Freight Forwarder', badge: 'Forwarder Marketplace', welcome: 'Welcome back, Sarah! 28 spot rate inquiries pending.' },
+                logistics: { name: 'Marcus Vance', title: 'Logistics Team', badge: 'Logistics Operations Center', welcome: 'System Status: All corridors monitored. 4 port congestion alerts.' },
+                admin: { name: 'Admin Commander', title: 'Global Risk Intel', badge: 'Admin Security Command', welcome: 'Security level: DEFCON 2. Red Sea & Panama Canal advisories active.' }
+            };
+            const current = roleLabels[role] || roleLabels['importer'];
+            document.getElementById('userNameLabel').innerText = current.name;
+            document.getElementById('userRoleLabel').innerText = current.title;
+            document.getElementById('userAvatarInitials').innerText = current.name.split(' ').map(n => n[0]).join('');
+            document.getElementById('dashboardRoleBadge').innerText = current.badge;
+            document.getElementById('dashboardWelcomeTitle').innerText = current.welcome;
+            document.getElementById('roleSelector').value = role;
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.view-container').forEach(el => el.classList.add('hidden'));
+            document.getElementById('view-' + tabId).classList.remove('hidden');
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.className = "nav-btn w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl font-medium text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition";
+            });
+            const activeBtn = document.getElementById('nav-' + tabId);
+            if(activeBtn) {
+                activeBtn.className = "nav-btn w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl font-medium text-sm bg-maritime-600 text-white shadow-md shadow-maritime-500/25";
+            }
+        }
+
+        function renderPortsGrid(ports) {
+            const grid = document.getElementById('portGrid');
+            if(!grid) return;
+            grid.innerHTML = ports.map(p => `
+                <div class="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-maritime-500 transition">
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <span class="text-[10px] font-bold px-2 py-0.5 bg-maritime-100 dark:bg-maritime-900 text-maritime-600 dark:text-maritime-400 rounded-md">${p.code}</span>
+                            <h3 class="font-bold text-base text-slate-900 dark:text-white mt-1">${p.name}</h3>
+                            <p class="text-xs text-slate-500">${p.country} &bull; ${p.region}</p>
+                        </div>
+                        <span class="px-2.5 py-1 ${p.status.includes('Normal') ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700' : 'bg-amber-100 dark:bg-amber-950 text-amber-700'} text-[10px] font-medium rounded-full">${p.status}</span>
+                    </div>
+                    <div class="space-y-2 text-xs border-t border-slate-200 dark:border-slate-700 pt-3">
+                        <div class="flex justify-between"><span class="text-slate-500">Terminal Capacity:</span> <span class="font-semibold text-slate-800 dark:text-slate-200">${p.capacity}</span></div>
+                        <div class="flex justify-between"><span class="text-slate-500">Avg Dwell Time:</span> <span class="font-semibold text-amber-600">${p.dwell}</span></div>
+                        <div class="flex justify-between"><span class="text-slate-500">Coordinates:</span> <span class="font-mono text-[11px] text-slate-600 dark:text-slate-400">${p.coords}</span></div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterPorts() {
+            const query = document.getElementById('portSearchInput').value.toLowerCase();
+            const filtered = globalPorts.filter(p => 
+                p.name.toLowerCase().includes(query) || 
+                p.country.toLowerCase().includes(query) || 
+                p.code.toLowerCase().includes(query) ||
+                p.region.toLowerCase().includes(query)
+            );
+            renderPortsGrid(filtered);
+        }
+
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            html.classList.toggle('dark');
+            const isDark = html.classList.contains('dark');
+            document.getElementById('themeIcon').className = isDark ? 'fa-solid fa-sun text-lg text-amber-400' : 'fa-solid fa-moon text-lg';
+        }
+
+        function showModal(title, body, iconClass = 'fa-info') {
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalBody').innerText = body;
+            document.getElementById('modalIcon').innerHTML = `<i class="fa-solid ${iconClass}"></i>`;
+            document.getElementById('messageModal').classList.remove('hidden');
+        }
+        function closeModal() {
+            document.getElementById('messageModal').classList.add('hidden');
+        }
+        function toggleNotificationModal() {
+            showModal('Notifications Center', 'You have 4 new vessel departure updates, 2 port congestion warnings, and 1 customs clearance notice.', 'fa-bell');
+        }
+        function openSupportModal() {
+            showModal('24/7 Command Desk', 'Connected to maritime dispatch specialist. Direct hotline: +1 (800) OCEAN-TRACK.', 'fa-headset');
+        }
+        function viewShipmentDetails(bol) {
+            switchTab('tracker');
+            document.getElementById('trackingInput').value = bol;
+            document.getElementById('currentBolLabel').innerText = bol;
+            showModal('Shipment Selected', `Loaded real-time AIS and milestone timeline for ${bol}.`, 'fa-ship');
+        }
+        function searchShipment() {
+            const val = document.getElementById('trackingInput').value.trim();
+            if(!val) {
+                showModal('Input Required', 'Please enter a valid Container or Bill of Lading number.', 'fa-triangle-exclamation');
+                return;
+            }
+            document.getElementById('currentBolLabel').innerText = val;
+            showModal('Tracking Found', `Live AIS tracking synchronized for ${val}. Current status: On Water (Cape Route).`, 'fa-satellite');
+        }
+        function calculateRates() {
+            const pol = document.getElementById('calcPol').value;
+            const pod = document.getElementById('calcPod').value;
+            const container = document.getElementById('calcContainer').value;
+            showModal('Rates Calculated', `Fetched spot & contract rates for ${container} from ${pol} to ${pod} successfully.`, 'fa-calculator');
+        }
+        function bookRate(carrier, price) {
+            showModal('Booking Confirmed', `Successfully reserved ${carrier} freight slot at ${price}. Confirmation doc generated in Vault.`, 'fa-check');
+        }
+        function triggerOptimization() {
+            showModal('AI Simulation', 'Rerouting simulation complete. Cape of Good Hope corridor recommended for security with +12 days transit buffer.', 'fa-shield-halved');
+        }
+        function openUploadModal() {
+            showModal('Document Upload', 'Select Bill of Lading, Commercial Invoice, or Packing List to upload securely to Vault.', 'fa-cloud-arrow-up');
+        }
+        function downloadDoc(docName) {
+            showModal('Secure Download', `Downloading encrypted document: ${docName}.pdf`, 'fa-download');
+        }
+    </script>
+</body>
+</html>
